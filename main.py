@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 from model import filter_and_recommend
+from recModel import recommend_with_all_users_history
 
 app = Flask(__name__)
 
@@ -23,7 +24,9 @@ def planner():
 
 @app.route('/recommendations')
 def recommendations():
-     return "recommendations",200
+    search = request.args.get('search')
+    recommendations = recommend_with_all_users_history(search)
+    return jsonify({"code" : 200, "message" : "success" , "recommendations" : recommendations}),200
 
 if __name__ == '__main__':
-    app.run(host="127.0.0.1", port=8080, debug=True)
+    app.run(host="0.0.0.0", port=8080, debug=True)
