@@ -22,6 +22,7 @@ def load_data_from_firestore():
 
     for doc in docs:
         tempat_wisata = doc.to_dict()
+        tempat_wisata['id'] = doc.id 
         data.append(tempat_wisata)
 
     return pd.DataFrame(data)
@@ -116,9 +117,8 @@ def get_all_users_search_history_from_firestore():
     docs = db.collection('SearchHistory').stream()
     search_terms = []
     
-    print(docs)
     for doc in docs:
-        search_term = doc.to_dict()['search_term']
+        search_term = doc.to_dict()['search']
         search_terms.append(search_term)
 
     return search_terms

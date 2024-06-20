@@ -7,7 +7,7 @@ from itertools import combinations
 import numpy as np
 
 # Load and preprocess data
-df = pd.read_csv('data_wisata.csv')
+df = pd.read_csv('data_wisata_fix.csv')
 df = df.drop(columns=['Rentang Harga', 'Lokasi / Tempat'], axis=1)
 
 df['latitude'] = pd.to_numeric(df['latitude'], errors='coerce')
@@ -45,8 +45,8 @@ class TripModel(tfrs.Model):
         ])
 
         self.facilities_embedding = tf.keras.Sequential([
-            tf.keras.layers.StringLookup(vocabulary=df["Fasilitas Yang Tersedia"].unique(), mask_token=None),
-            tf.keras.layers.Embedding(len(df["Fasilitas Yang Tersedia"].unique()) + 1, 32)
+            tf.keras.layers.StringLookup(vocabulary=df["Fasilitas"].unique(), mask_token=None),
+            tf.keras.layers.Embedding(len(df["Fasilitas"].unique()) + 1, 32)
         ])
 
         self.accessibility_embedding = tf.keras.Sequential([
@@ -68,7 +68,7 @@ class TripModel(tfrs.Model):
     def compute_loss(self, features, training=False):
         item_embeddings = self.item_embedding(features["Jenis Wisata"])
         description_embeddings = self.description_embedding(features["Deskripsi"])
-        facilities_embeddings = self.facilities_embedding(features["Fasilitas Yang Tersedia"])
+        facilities_embeddings = self.facilities_embedding(features["Fasilitas"])
         accessibility_embeddings = self.accessibility_embedding(features["Aksesibilitas"])
 
         embeddings = tf.concat([item_embeddings, description_embeddings, facilities_embeddings, accessibility_embeddings], axis=1)
@@ -82,7 +82,7 @@ class TripModel(tfrs.Model):
 features = {
     "Jenis Wisata": df["Jenis Wisata"].values,
     "Deskripsi": df["Deskripsi"].values,
-    "Fasilitas Yang Tersedia": df["Fasilitas Yang Tersedia"].values,
+    "Fasilitas": df["Fasilitas"].values,
     "Aksesibilitas": df["Aksesibilitas"].values,
     "Rating": df["Rating"].values
 }
@@ -104,13 +104,13 @@ def filter_and_recommend(user_kategori, user_jenis_wisata, user_child_friendly, 
     features_for_prediction = {
         "Jenis Wisata": filtered_data["Jenis Wisata"].values,
         "Deskripsi": filtered_data["Deskripsi"].values,
-        "Fasilitas Yang Tersedia": filtered_data["Fasilitas Yang Tersedia"].values,
+        "Fasilitas": filtered_data["Fasilitas"].values,
         "Aksesibilitas": filtered_data["Aksesibilitas"].values
     }
 
     item_embeddings = model.item_embedding(features_for_prediction["Jenis Wisata"])
     description_embeddings = model.description_embedding(features_for_prediction["Deskripsi"])
-    facilities_embeddings = model.facilities_embedding(features_for_prediction["Fasilitas Yang Tersedia"])
+    facilities_embeddings = model.facilities_embedding(features_for_prediction["Fasilitas"])
     accessibility_embeddings = model.accessibility_embedding(features_for_prediction["Aksesibilitas"])
 
     embeddings = tf.concat([item_embeddings, description_embeddings, facilities_embeddings, accessibility_embeddings], axis=1)
